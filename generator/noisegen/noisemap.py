@@ -76,6 +76,10 @@ class NoiseMap:
 
 
     def generate_2d_noise(self, frequency: int = 1, amplitude: float = .5):
+        """
+        Frequency = how far apart the points are (sine waves). Higher number = "zoomed out"
+        Amplitude = The peak, diminishes over time for adding detail.
+        """
         simplex = OpenSimplex(self.seed)
 
         # TODO I think there's a better way to use numpy here
