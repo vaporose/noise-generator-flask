@@ -1,6 +1,6 @@
 import numpy
 
-from generator.noisegen.noisemap import NoiseMap
+from generator.noisegen import NoiseMap
 
 
 def test_heightmap():
