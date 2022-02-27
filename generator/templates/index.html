@@ -32,22 +32,23 @@
 
 
 <div class="wrapper">
+{% if session["noise_map"] %}
+    {% set height = session["noise_map"].height %}
+    {% set width = session["noise_map"].width %}
+    {% set scale = session["noise_map"].scale %}
+    {% set x_offset = session["noise_map"].x_offset %}
+    {% set y_offset = session["noise_map"].y_offset %}
+{% else %}
+    {% set height = 80 %}
+    {% set width = 80 %}
+    {% set scale = 1 %}
+    {% set x_offset = 0 %}
+    {% set y_offset = 0 %}
+{% endif %}
 
     <div class="form-wrapper">
         <form action="/" method ="post" enctype="multipart/form-data" id="form">
-            {% if session["noise_map"] %}
-                {% set height = session["noise_map"].height %}
-                {% set width = session["noise_map"].width %}
-                {% set scale = session["noise_map"].scale %}
-                {% set x_offset = session["noise_map"].x_offset %}
-                {% set y_offset = session["noise_map"].y_offset %}
-            {% else %}
-                {% set height = 80 %}
-                {% set width = 80 %}
-                {% set scale = 1 %}
-                {% set x_offset = 0 %}
-                {% set y_offset = 0 %}
-            {% endif %}
+
         {#    FIXME: Seed is broken#}
         {#    <div class="mb-auto">#}
         {#        <label class="form-label">Seed:<input class="form-control" type="text" name="seed"></label>#}
@@ -82,7 +83,7 @@
     </div>
     <div class="map-wrapper">
         {% if img_data %}
-            <img src="data:image/png;base64,{{ img_data }}" class="img noisemap" alt="Generated Map">
+            <img src="data:image/png;base64,{{ img_data }}" height="{{ height }}" width="{{ width }}" class="img noisemap" alt="Generated Map">
         {% endif %}
     </div>
 

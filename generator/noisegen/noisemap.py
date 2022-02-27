@@ -65,11 +65,15 @@ class NoiseMap:
 
     def generate_image(self):
         # TODO currently will error if this is run before setting the map
-        image = Image.new("L", (self.height, self.width))
+        image = Image.new("L", (self.width, self.height))
         for y in range(self.height):
             for x in range(self.width):
                 color = int((self._noise_map[y][x] + 1) * 128)
-                image.putpixel((x, y), color)
+                try:
+                    image.putpixel((x, y), color)
+                except IndexError as err:
+                    logging.error(f"Trying to put in {x},{y}. Width/Height: {self.width}/{self.height}")
+                    logging.error(err)
         image_buffer = BytesIO()
         image.save(image_buffer, "PNG")
         image_data = base64.b64encode(image_buffer.getbuffer()).decode("ascii")
