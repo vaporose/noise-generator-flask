@@ -67,7 +67,7 @@ class NoiseMap:
             if noise_map is not None:
                 for y in range(self.height):
                     for x in range(self.width):
-                        noise_map[y][x] += (current_map[y][x] * amplitude)
+                        noise_map[y][x] += current_map[y][x] * amplitude
 
             else:
                 noise_map = current_map
@@ -75,7 +75,7 @@ class NoiseMap:
         self._noise_map = noise_map
 
 
-    def generate_2d_noise(self, frequency: int = 1):
+    def generate_2d_noise(self, frequency: int = 1, amplitude: float = .5):
         simplex = OpenSimplex(self.seed)
 
         # TODO I think there's a better way to use numpy here
@@ -85,11 +85,13 @@ class NoiseMap:
             for x in range(self.width):
                 ny = (x + self.x_offset) / self.scale
                 nx = (y + self.y_offset) / self.scale
-                noise = simplex.noise2(nx * frequency, ny * frequency) + 1
+                # The +1 here is from opensimplex, and gets the number above 0
+                noise = (simplex.noise2(nx * frequency, ny * frequency) + 1) * amplitude
                 noise_array[y][x] = noise
 
+        # TODO does this belong here or in the outer call?
         min_value = noise_array.min(initial=0)
-        max_value = noise_array.max(initial=1)  # TODO replace with numpy
+        max_value = noise_array.max(initial=1)
         for y in range(self.height):
             for x in range(self.width):
                 z = (noise_array[y][x] - min_value) / (max_value - min_value)
