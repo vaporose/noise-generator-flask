@@ -7,35 +7,74 @@
     {% block styles %}
         <!-- Bootstrap CSS -->
         {{ bootstrap.load_css() }}
+        <style>
+        .wrapper {
+            position: absolute;
+            width: 90%;
+            height: 100%;
+            margin: 0 auto;
+            display: flex;
+        }
+
+        .map-wrapper {
+            margin: 3%;
+            width: available;
+        }
+        .form-wrapper {
+            margin: 3%;
+            width: 200px;
+        }
+        </style>
     {% endblock %}
 </head>
 <body>
-{% if img_data %}<img src="data:image/png;base64,{{ img_data }}" alt="Generated Map">{% endif %}
 
-<form action="/" method ="post" enctype="multipart/form-data" id="form">
-{#    <div class="mb-auto">#}
-{#        <label class="form-label">Seed:<input class="form-control" type="text" name="seed"></label>#}
-{#    </div>#}
-    <div class="mb-auto">
-        <label class="form-label">Height:<input class="form-control-range" id="height_slide" type="range" min="80" max="640" step="80" value="240" name="height"></label>
+
+
+<div class="wrapper">
+
+    <div class="form-wrapper">
+        <form action="/" method ="post" enctype="multipart/form-data" id="form">
+
+        {#    FIXME: Seed is broken#}
+        {#    <div class="mb-auto">#}
+        {#        <label class="form-label">Seed:<input class="form-control" type="text" name="seed"></label>#}
+        {#    </div>#}
+            <div class="mb-auto">
+                <label class="form-label" for="height_slide">Height:</label>
+                <input class="form-control-range" id="height_slide" type="range" min="80" max="640" step="80" value="240" name="height"  oninput="this.nextElementSibling.value = this.value">
+                <output>80</output>
+            </div>
+            <div class="mb-auto">
+                <label class="form-label" for="width_slide">Width:</label>
+                <input class="form-control-range" id="width_slide" type="range" min="80" max="640" step="80" value="240" name="width">
+                <output>80</output>
+            </div>
+            <div class="mb-auto">
+                <label class="form-label" for="scale_slide">Scale:</label>
+                <input class="form-control-range" id="scale_slide" type="range" min="1" max="200" step="1" value="1" name="scale">
+                <output>1</output>
+            </div>
+            <div class="mb-auto">
+                <label class="form-label" for="x_offset">X Offset:</label>
+                <input class="form-control" id="x_offset" type="number" name="x_offset" value="0">
+            </div>
+            <div class="mb-auto">
+                <label class="form-label" for="y_offset">Y Offset:</label>
+                <input class="form-control" id="y_offset" type="number" name="y_offset" value="0">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+
+        </form>
     </div>
-    <div class="mb-auto">
-        <label class="form-label">Width:<input class="form-control-range" id="width_slide" type="range" min="80" max="640" step="80" value="240" name="width"></label>
-    </div>
-    <div class="mb-auto">
-        <label class="form-label">Scale:<input class="form-control-range" id="scale_slide" type="range" min="1" max="200" step="1" value="1" name="scale"></label>
-    </div>
-    <div class="mb-auto">
-        <label class="form-label">X Offset:<input class="form-control" type="number" name="x_offset" value="0"></label>
-    </div>
-    <div class="mb-auto">
-        <label class="form-label">Y Offset:<input class="form-control" type="number" name="y_offset" value="0"></label>
+    <div class="map-wrapper">
+        {% if img_data %}
+            <img src="data:image/png;base64,{{ img_data }}" class="img noisemap" alt="Generated Map">
+        {% endif %}
     </div>
 
-    <button type="submit" class="btn btn-primary">Submit</button>
-
-</form>
-
+</div>
 
 
     <!--- SCRIPTS --->
