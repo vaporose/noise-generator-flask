@@ -34,32 +34,66 @@ def generate_2d_noise(height: int,
 
 class NoiseMap:
 
-    def __init__(self, height = None, width = None, scale = None, x_offset = None, y_offset = None, noise_map = None, seed = None):
+    def __init__(self,
+                 height: int = None,
+                 width: int = None,
+                 scale: int = None,
+                 x_offset: int = None,
+                 y_offset: int = None,
+                 octaves: int = 1,
+                 noise_map=None,
+                 seed=None):
 
+        self.octaves = octaves
         self.y_offset = y_offset
         self.x_offset = x_offset
         self.scale = scale
         self.width = width
         self.height = height
         self.seed = seed or uuid.uuid1().int >> 64
-        self._noise_map = noise_map or []
+        self._noise_map = noise_map or []  # Future compatibility
 
     def generate_noise_map(self):
         logging.info("Generating the map now")
         # TODO: Feature - add 3D + functions?
-        self._noise_map = self.generate_2d_noise()
+        noise_map = None
+        persistence = 0.5
+        for octave in range(self.octaves):
+            amplitude = persistence**octave
+            frequency = 2**octave
+            print(f"{amplitude}, {frequency}")
+            current_map = self.generate_2d_noise(frequency)
+            # TODO this definitely can be done better
+            if noise_map is not None:
+                for y in range(self.height):
+                    for x in range(self.width):
+                        noise_map[y][x] += (current_map[y][x] * amplitude)
 
-    def generate_2d_noise(self):
+            else:
+                noise_map = current_map
+
+        self._noise_map = noise_map
+
+
+    def generate_2d_noise(self, frequency: int = 1):
         simplex = OpenSimplex(self.seed)
 
+        # TODO I think there's a better way to use numpy here
         noise_array = np.zeros((self.height, self.width))
 
         for y in range(self.height):
             for x in range(self.width):
                 ny = (x + self.x_offset) / self.scale
                 nx = (y + self.y_offset) / self.scale
-                noise = simplex.noise2(nx, ny)
+                noise = simplex.noise2(nx * frequency, ny * frequency) + 1
                 noise_array[y][x] = noise
+
+        min_value = noise_array.min(initial=0)
+        max_value = noise_array.max(initial=1)  # TODO replace with numpy
+        for y in range(self.height):
+            for x in range(self.width):
+                z = (noise_array[y][x] - min_value) / (max_value - min_value)
+                noise_array[y][x] = z
 
         return noise_array
 
@@ -68,7 +102,8 @@ class NoiseMap:
         image = Image.new("L", (self.width, self.height))
         for y in range(self.height):
             for x in range(self.width):
-                color = int((self._noise_map[y][x] + 1) * 128)
+                # TODO need to learn better what to do with this
+                color = int(self._noise_map[y][x] * 128)
                 try:
                     image.putpixel((x, y), color)
                 except IndexError as err:
@@ -80,6 +115,12 @@ class NoiseMap:
         image_buffer.close()
         return image_data
 
-    def to_json(self):
-        json_vars = {key: value for key, value in vars(self).items() if not (key.startswith('_') or callable(value))}
+    def to_json(self) -> dict:
+        """
+        This returns all json-serializable values of this object.
+
+        All non-serializable attributes are set as private
+        :return:
+        """
+        json_vars = {key: value for key, value in vars(self).items() if not key.startswith('_')}
         return json_vars

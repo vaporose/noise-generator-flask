@@ -38,12 +38,14 @@
     {% set scale = session["noise_map"].scale %}
     {% set x_offset = session["noise_map"].x_offset %}
     {% set y_offset = session["noise_map"].y_offset %}
+    {% set octaves = session["noise_map"].octaves %}
 {% else %}
     {% set height = 80 %}
     {% set width = 80 %}
     {% set scale = 1 %}
     {% set x_offset = 0 %}
     {% set y_offset = 0 %}
+    {% set octaves = 1 %}
 {% endif %}
 
     <div class="form-wrapper">
@@ -67,6 +69,11 @@
                 <label class="form-label" for="scale_slide">Scale:</label>
                 <input class="form-control-range" id="scale_slide" type="range" min="1" max="200" step="1" value="{{ scale }}" name="scale" oninput="this.nextElementSibling.value = this.value">
                 <output>{{ scale }}</output>
+            </div>
+            <div class="mb-auto">
+                <label class="form-label" for="octaves_slide">Resolution:</label>
+                <input class="form-control-range" id="octaves_slide" type="range" min="1" max="8" step="1" value="{{ octaves }}" name="octaves" oninput="this.nextElementSibling.value = this.value">
+                <output>{{ octaves }}</output>
             </div>
             <div class="mb-auto">
                 <label class="form-label" for="x_offset">X Offset:</label>
