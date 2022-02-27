@@ -71,7 +71,7 @@ class NoiseMap:
         image = Image.new("L", (self.height, self.width))
         for y in range(self.height):
             for x in range(self.width):
-                color = int(self.noise_map[y][x] * 128)
+                color = int((self.noise_map[y][x]+1) * 128)
                 image.putpixel((x, y), color)
         image_buffer = BytesIO()
         image.save(image_buffer, "PNG")
