@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generator</title>
+
+    {% block styles %}
+        <!-- Bootstrap CSS -->
+        {{ bootstrap.load_css() }}
+    {% endblock %}
+</head>
+<body>
+{% if img_data %}<img src="data:image/png;base64,{{ img_data }}" alt="Generated Map">{% endif %}
+
+<form action="/" method ="post" enctype="multipart/form-data" id="form">
+{#    <div class="mb-auto">#}
+{#        <label class="form-label">Seed:<input class="form-control" type="text" name="seed"></label>#}
+{#    </div>#}
+    <div class="mb-auto">
+        <label class="form-label">Height:<input class="form-control-range" id="height_slide" type="range" min="80" max="640" step="80" value="240" name="height"></label>
+    </div>
+    <div class="mb-auto">
+        <label class="form-label">Width:<input class="form-control-range" id="width_slide" type="range" min="80" max="640" step="80" value="240" name="width"></label>
+    </div>
+    <div class="mb-auto">
+        <label class="form-label">Scale:<input class="form-control-range" id="scale_slide" type="range" min="1" max="200" step="1" value="1" name="scale"></label>
+    </div>
+    <div class="mb-auto">
+        <label class="form-label">X Offset:<input class="form-control" type="number" name="x_offset" value="0"></label>
+    </div>
+    <div class="mb-auto">
+        <label class="form-label">Y Offset:<input class="form-control" type="number" name="y_offset" value="0"></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+
+</form>
+
+
+
+    <!--- SCRIPTS --->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    {% block scripts %}
+        <!-- Optional JavaScript -->
+        {{ bootstrap.load_js() }}
+    {% endblock %}
+</body>
+</html>
