@@ -9,6 +9,7 @@ def create_app():
 
     app = Flask("generator")
     app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "united"
+    app.config["SECRET_KEY"] = "FRODO BAGGINS"  # TODO use secure thing
     bootstrap = Bootstrap5(app)
 
     from .noisegen import noise_bp
