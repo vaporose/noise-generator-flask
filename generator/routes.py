@@ -2,7 +2,7 @@ import base64
 from io import BytesIO
 from flask.views import MethodView
 from flask import render_template, request, jsonify, url_for, make_response, redirect, current_app
-from .noisegen import noise
+from .noisegen.noisemap import NoiseMap
 from . import schemas
 from PIL import Image
 
@@ -17,12 +17,12 @@ class IndexView(MethodView):
         return render_template("index.html")
 
     def post(self):
-        schema = schemas.FormSchema()
+        schema = schemas.FormSchema()  # Easy way to convert form data strings to their needed types.
         form = schema.load(request.form)
-        height = form.get("height")
-        width = form.get("width")
-        noise_array = noise.generate_2d_noise(**form)
-        data = noise.grayscale_image_data_from_noisemap(noise_array, height, width)
+
+        noise_array = NoiseMap(**form)
+        noise_array.generate_noise_map()
+        data = noise_array.generate_image()
 
         return render_template("index.html", img_data=data)
 
