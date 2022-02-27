@@ -1,12 +1,8 @@
-import base64
-from io import BytesIO
+from flask import render_template, request, jsonify, url_for, redirect, current_app
 from flask.views import MethodView
-from flask import render_template, request, jsonify, url_for, make_response, redirect, current_app
-from .noisegen.noisemap import NoiseMap
-from . import schemas
-from PIL import Image
 
-from matplotlib.figure import Figure
+from . import schemas
+from .noisegen import NoiseMap
 
 
 class IndexView(MethodView):
@@ -27,17 +23,3 @@ class IndexView(MethodView):
         return render_template("index.html", img_data=data)
 
 
-class TestView(MethodView):
-    methods = ["GET", "POST"]
-
-    def get(self):
-        # Generate the figure **without using pyplot**.
-        fig = Figure()
-        ax = fig.subplots()
-        ax.plot([1, 2])
-        # Save it to a temporary buffer.
-        buf = BytesIO()
-        fig.savefig(buf, format="png")
-        # Embed the result in the html output.
-        data = base64.b64encode(buf.getbuffer()).decode("ascii")
-        return render_template("index.html", img_data=data)
