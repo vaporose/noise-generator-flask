@@ -41,9 +41,14 @@ class NoiseMap:
                  x_offset: int = None,
                  y_offset: int = None,
                  octaves: int = 1,
+                 persistence: [int, float] = 0.5,
                  noise_map=None,
                  seed=None):
 
+        persistence = float(persistence)
+        if persistence > 1.0:
+            persistence *= 100
+        self.persistence = persistence
         self.octaves = octaves
         self.y_offset = y_offset
         self.x_offset = x_offset
@@ -57,9 +62,8 @@ class NoiseMap:
         logging.info("Generating the map now")
         # TODO: Feature - add 3D + functions?
         noise_map = None
-        persistence = 0.5
         for octave in range(self.octaves):
-            amplitude = persistence**octave
+            amplitude = self.persistence**octave
             frequency = 2**octave
             print(f"{amplitude}, {frequency}")
             current_map = self.generate_2d_noise(frequency)
@@ -73,7 +77,6 @@ class NoiseMap:
                 noise_map = current_map
 
         self._noise_map = noise_map
-
 
     def generate_2d_noise(self, frequency: int = 1, amplitude: float = .5):
         """

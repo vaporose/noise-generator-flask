@@ -12,3 +12,4 @@ class FormSchema(Schema):
     x_offset = fields.Int()
     y_offset = fields.Int()
     octaves = fields.Int()
+    persistence = fields.Float()
