@@ -7,31 +7,6 @@ import base64
 from io import BytesIO
 
 
-def generate_2d_noise(height: int,
-                      width: int,
-                      scale: int = 1,
-                      x_offset: int = 0,
-                      y_offset: int = 0,
-                      seed: str = None) -> np.ndarray:
-    """Standalone function, retaining for testing purposes."""
-
-    if seed:
-        simplex = OpenSimplex(seed)
-        # FIXME this is generating error: seed = overflow(seed * 6364136223846793005 + 1442695040888963407)
-    else:
-        simplex = OpenSimplex()
-    noise_array = np.zeros((height, width))
-
-    for y in range(height):
-        for x in range(width):
-            ny = (x + x_offset) / scale
-            nx = (y + y_offset) / scale
-            noise = simplex.noise2(nx, ny)
-            noise_array[y][x] = noise
-
-    return noise_array
-
-
 class NoiseMap:
 
     def __init__(self,
@@ -57,67 +32,46 @@ class NoiseMap:
         self.height = height
         self.seed = seed or uuid.uuid1().int >> 64
         self._noise_map = noise_map or []  # Future compatibility
+        self._simplex = OpenSimplex(self.seed)
 
     def generate_noise_map(self):
         logging.info("Generating the map now")
         # TODO: Feature - add 3D + functions?
-        noise_map = None
+        noise_map = np.zeros((self.height, self.width))
         for octave in range(self.octaves):
             amplitude = self.persistence**octave
             frequency = 2**octave
-            print(f"{amplitude}, {frequency}")
-            current_map = self.generate_2d_noise(frequency)
-            # TODO this definitely can be done better
-            if noise_map is not None:
-                for y in range(self.height):
-                    for x in range(self.width):
-                        noise_map[y][x] += current_map[y][x] * amplitude
+            for (x, y), z in np.ndenumerate(noise_map):
+                z += self.generate_2d_noise(x, y, frequency, amplitude)
+                noise_map[x][y] = z
 
-            else:
-                noise_map = current_map
+        # Normalizes values between 0 and 1
+        min_value = noise_map.min(initial=0)
+        max_value = noise_map.max(initial=1)
+        for (x, y), z in np.ndenumerate(noise_map):
+            new_z = (z - min_value) / (max_value - min_value)
+            noise_map[x][y] = new_z
 
         self._noise_map = noise_map
 
-    def generate_2d_noise(self, frequency: int = 1, amplitude: float = .5):
+    def generate_2d_noise(self, x, y, frequency: int = 1, amplitude: float = .5):
         """
         Frequency = how far apart the points are (sine waves). Higher number = "zoomed out"
         Amplitude = The peak, diminishes over time for adding detail.
         """
-        simplex = OpenSimplex(self.seed)
 
-        # TODO I think there's a better way to use numpy here
-        noise_array = np.zeros((self.height, self.width))
+        nx = ((x + self.x_offset) / self.scale) * frequency
+        ny = ((y + self.y_offset) / self.scale) * frequency
+        noise = (self._simplex.noise2(nx, ny) + 1) * amplitude
 
-        for y in range(self.height):
-            for x in range(self.width):
-                ny = (x + self.x_offset) / self.scale
-                nx = (y + self.y_offset) / self.scale
-                # The +1 here is from opensimplex, and gets the number above 0
-                noise = (simplex.noise2(nx * frequency, ny * frequency) + 1) * amplitude
-                noise_array[y][x] = noise
-
-        # TODO does this belong here or in the outer call?
-        min_value = noise_array.min(initial=0)
-        max_value = noise_array.max(initial=1)
-        for y in range(self.height):
-            for x in range(self.width):
-                z = (noise_array[y][x] - min_value) / (max_value - min_value)
-                noise_array[y][x] = z
-
-        return noise_array
+        return noise
 
     def generate_image(self):
         # TODO currently will error if this is run before setting the map
         image = Image.new("L", (self.width, self.height))
-        for y in range(self.height):
-            for x in range(self.width):
-                # TODO need to learn better what to do with this
-                color = int(self._noise_map[y][x] * 128)
-                try:
-                    image.putpixel((x, y), color)
-                except IndexError as err:
-                    logging.error(f"Trying to put in {x},{y}. Width/Height: {self.width}/{self.height}")
-                    logging.error(err)
+        for (x, y), z in np.ndenumerate(self._noise_map):
+            image.putpixel((x, y), int(z * 255))
+
         image_buffer = BytesIO()
         image.save(image_buffer, "PNG")
         image_data = base64.b64encode(image_buffer.getbuffer()).decode("ascii")
