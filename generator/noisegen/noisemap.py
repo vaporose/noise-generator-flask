@@ -27,8 +27,8 @@ class NoiseMap:
     Usage::
 
     >>> noise_map = NoiseMap(height=240, width=240, scale=100, octaves=6)
-    >>> noise_map.generate_noise_map()
-    >>> img_data = noise_map.generate_image()
+    >>> generated_map = noise_map.generate_noise_map()
+    >>> img_data = noise_map.run()
     """
 
     def __init__(self,
@@ -55,12 +55,18 @@ class NoiseMap:
         self._noise_map = []
         self._simplex = OpenSimplex(self.seed)
 
-    def generate_noise_map(self, return_map: bool = False):
+    def run(self):
+
+        normalized_map = self.generate_noise_map()
+        colorized_map = self.terrain_test(normalized_map)
+        img_data = self.generate_image(colorized_map)
+        return img_data
+
+    def generate_noise_map(self) -> np.ndarray:
         """
         Sets the private _noise_map attribute.
 
-        :param: return_map: If set, this method will return the map and not just generate it.
-        :return: None
+        :return: The noisemap ndarray
         """
         logging.info("Generating the map now")
         # TODO: Feature - add 3D + functions?
@@ -68,9 +74,7 @@ class NoiseMap:
         noise_map = self.noise_per_octaves()
         normalized_map = self.normalize_to_1(noise_map)
 
-        self._noise_map = normalized_map
-        if return_map:
-            return normalized_map
+        return normalized_map
 
     def noise_per_octaves(self) -> np.ndarray:
         """
@@ -121,11 +125,48 @@ class NoiseMap:
 
         return noise
 
-    def generate_image(self):
+    def terrain_test(self, noise_map: np.ndarray = None):
+        if noise_map is None:
+            noise_map = self._noise_map
+
+        new_map = np.zeros((self.height, self.width),dtype=tuple)
+        water_threshold = (40.0*255)/100
+        snow_threshold = (87.0*255)/100
+        beach_threshold = (42*255)/100
+
+        for (x, y), z in np.ndenumerate(noise_map):
+
+            lightness = int(z * 255)
+            color = None
+
+            if lightness <= water_threshold:
+                per_of_max = (lightness/255)*100
+                reverse_per = 100 - per_of_max
+                reduced_lightness = 255 - ((reverse_per/255)*100)
+                color = (0, 0, int(reduced_lightness))  # Blue
+            elif lightness <= beach_threshold:
+                color = (255, 248, 220)  # Beaches
+            elif lightness >= snow_threshold:
+                color = (lightness, lightness, lightness)  # Whiteish
+            elif water_threshold < lightness < snow_threshold:
+                color = (int(lightness/2), lightness, int(lightness/3))  # Green
+
+            new_map[x][y] = color
+
+        return new_map
+
+    def generate_image(self, noise_map: np.ndarray = None):
+        if noise_map is None:
+            noise_map = self._noise_map
         # TODO currently will error if this is run before setting the map
-        image = Image.new("L", (self.width, self.height))
-        for (x, y), z in np.ndenumerate(self._noise_map):
-            image.putpixel((x, y), int(z * 255))
+        image = Image.new("P", (self.width, self.height))
+        for (x, y), z in np.ndenumerate(noise_map):
+            # if isinstance(float, z):
+            #     z = int(z * 255)
+            #     color = (z, z, z)
+            # else:
+            #     color = z
+            image.putpixel((x, y), z)
 
         image_buffer = BytesIO()
         image.save(image_buffer, "PNG")

@@ -27,7 +27,7 @@ class IndexView(MethodView):
 
         noise_map.generate_noise_map()
         session["noise_map"] = noise_map.to_json()
-        data = noise_map.generate_image()
+        data = noise_map.run()
 
         return render_template("index.html", img_data=data)
 
